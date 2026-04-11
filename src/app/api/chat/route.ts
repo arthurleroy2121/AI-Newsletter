@@ -53,15 +53,26 @@ export async function POST(request: Request): Promise<Response> {
         max_tokens: 1000,
         stream: true,
       }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("OpenRouter chat API error:", response.status, errorBody);
-      return NextResponse.json(
-        { error: `OpenRouter API error: ${response.status}` },
-        { status: 502 }
-      );
+
+      let detail = `OpenRouter API error: ${response.status}`;
+      try {
+        const parsed = JSON.parse(errorBody) as {
+          error?: { message?: string };
+        };
+        if (parsed.error?.message) {
+          detail = parsed.error.message;
+        }
+      } catch {
+        // Utiliser le message par défaut
+      }
+
+      return NextResponse.json({ error: detail }, { status: 502 });
     }
 
     // Stream the response to the client
@@ -74,38 +85,55 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        // Buffer pour accumuler les lignes SSE incomplètes entre les chunks
+        let lineBuffer = "";
+
+        function processSSELine(line: string) {
+          if (!line.startsWith("data: ")) return;
+          const data = line.substring(6).trim();
+          if (data === "[DONE]") return;
+
+          try {
+            const parsed = JSON.parse(data) as {
+              choices?: Array<{
+                delta?: { content?: string };
+              }>;
+              content?: string;
+            };
+            // Handle both standard OpenAI format and OpenRouter simplified format
+            const content =
+              parsed.choices?.[0]?.delta?.content ?? parsed.content;
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          } catch {
+            // Skip genuinely malformed JSON
+          }
+        }
+
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
+            lineBuffer += chunk;
+            const lines = lineBuffer.split("\n");
+
+            // Le dernier élément est potentiellement incomplet — le garder pour le prochain chunk
+            lineBuffer = lines.pop() ?? "";
 
             for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              const data = line.substring(6).trim();
-              if (data === "[DONE]") continue;
-
-              try {
-                const parsed = JSON.parse(data) as {
-                  choices?: Array<{
-                    delta?: { content?: string };
-                  }>;
-                  content?: string;
-                };
-                // Handle both standard OpenAI format and OpenRouter simplified format
-                const content =
-                  parsed.choices?.[0]?.delta?.content ?? parsed.content;
-                if (content) {
-                  controller.enqueue(new TextEncoder().encode(content));
-                }
-              } catch {
-                // Skip malformed SSE chunks
-              }
+              processSSELine(line);
             }
+          }
+
+          // Traiter le reste du buffer après la fin du stream
+          if (lineBuffer.trim()) {
+            processSSELine(lineBuffer.trim());
           }
         } catch (error) {
           console.error("Stream processing error:", error);

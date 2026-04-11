@@ -47,6 +47,10 @@ export default function ChatPanel({ onTopicReady }: ChatPanelProps) {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.error(
+            `[Chat] /api/chat error ${response.status}:`,
+            errorData
+          );
           const errorMsg =
             (errorData as { error?: string }).error ||
             "Erreur de connexion. Réessayez.";
@@ -98,7 +102,7 @@ export default function ChatPanel({ onTopicReady }: ChatPanelProps) {
             ...allMessages,
             {
               role: "assistant",
-              content: "La connexion a ��té interrompue. Réessayez.",
+              content: "La connexion a été interrompue. Réessayez.",
             },
           ]);
         }
