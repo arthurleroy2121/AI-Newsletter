@@ -10,4 +10,5 @@ export const PDF_COLORS = {
 } as const;
 
 export const OPENROUTER_MODEL = "perplexity/sonar-pro";
+export const OPENROUTER_CHAT_MODEL = "openai/gpt-4o-mini";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";

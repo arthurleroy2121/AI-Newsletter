@@ -53,7 +53,7 @@ function formatDate(): string {
   });
 }
 
-function renderCoverPage(doc: jsPDF, date: string): void {
+function renderCoverPage(doc: jsPDF, date: string, topic?: string): void {
   const pageWidth = 210;
   const { primary, secondary, accent, lightAccent } = PDF_COLORS;
 
@@ -76,8 +76,9 @@ function renderCoverPage(doc: jsPDF, date: string): void {
   doc.setFont("Inter", "normal");
   doc.setFontSize(14);
   setColor(doc, secondary);
+  const topicLabel = topic || "l'intelligence artificielle";
   doc.text("Résumé quotidien de", pageWidth / 2, 115, { align: "center" });
-  doc.text("l'intelligence artificielle", pageWidth / 2, 123, {
+  doc.text(topicLabel, pageWidth / 2, 123, {
     align: "center",
   });
 
@@ -88,7 +89,8 @@ function renderCoverPage(doc: jsPDF, date: string): void {
 
   // Tagline
   doc.setFontSize(11);
-  doc.text("Top 3 des actualités IA", pageWidth / 2, 180, {
+  const taglineSubject = topic || "IA";
+  doc.text(`Top 3 des actualités ${taglineSubject}`, pageWidth / 2, 180, {
     align: "center",
   });
   doc.text("des dernières 24 heures", pageWidth / 2, 188, {
@@ -189,7 +191,7 @@ function renderNewsPage(
   });
 }
 
-export function generatePDF(news: NewsItem[]): ArrayBuffer {
+export function generatePDF(news: NewsItem[], topic?: string): ArrayBuffer {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -201,7 +203,7 @@ export function generatePDF(news: NewsItem[]): ArrayBuffer {
   const date = formatDate();
 
   // Page 1: Cover
-  renderCoverPage(doc, date);
+  renderCoverPage(doc, date, topic);
 
   // Pages 2-4: News items
   for (let i = 0; i < news.length; i++) {

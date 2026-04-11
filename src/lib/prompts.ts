@@ -1,5 +1,6 @@
-export const SYSTEM_PROMPT = `Tu es un journaliste technologique expert en intelligence artificielle.
-Ta mission est de fournir un résumé structuré des 3 actualités IA les plus importantes des dernières 24 heures.
+export function getSystemPrompt(topic: string): string {
+  return `Tu es un journaliste technologique expert en ${topic}.
+Ta mission est de fournir un résumé structuré des 3 actualités les plus importantes en ${topic} des dernières 24 heures.
 
 Tu dois répondre UNIQUEMENT avec un objet JSON valide, sans texte avant ou après.
 Le JSON doit suivre exactement ce schéma:
@@ -22,5 +23,16 @@ Règles:
 - Chaque description doit être informative et accessible au grand public
 - Les sources doivent être fiables (grands médias tech, blogs officiels, communiqués de presse)
 - Les URLs doivent être réelles et valides`;
+}
 
-export const USER_PROMPT = `Quelles sont les 3 actualités les plus importantes en intelligence artificielle des dernières 24 heures ? Recherche sur le web les informations les plus récentes. Réponds uniquement en JSON valide, sans markdown.`;
+export function getUserPrompt(topic: string, keywords: string[]): string {
+  const keywordsPart =
+    keywords.length > 0
+      ? ` Mots-clés importants : ${keywords.join(", ")}.`
+      : "";
+  return `Quelles sont les 3 actualités les plus importantes en ${topic} des dernières 24 heures ?${keywordsPart} Recherche sur le web les informations les plus récentes. Réponds uniquement en JSON valide, sans markdown.`;
+}
+
+// Backward-compatible exports for default AI topic
+export const SYSTEM_PROMPT = getSystemPrompt("intelligence artificielle");
+export const USER_PROMPT = getUserPrompt("intelligence artificielle", []);

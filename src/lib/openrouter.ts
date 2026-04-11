@@ -1,12 +1,18 @@
 import { OPENROUTER_API_URL, OPENROUTER_MODEL } from "@/config/constants";
-import { SYSTEM_PROMPT, USER_PROMPT } from "./prompts";
+import { getSystemPrompt, getUserPrompt, SYSTEM_PROMPT, USER_PROMPT } from "./prompts";
 import type { NewsItem, GenerateResponse } from "./types";
 
-export async function fetchAINews(): Promise<NewsItem[]> {
+export async function fetchAINews(
+  topic?: string,
+  keywords?: string[]
+): Promise<NewsItem[]> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY is not configured");
   }
+
+  const systemPrompt = topic ? getSystemPrompt(topic) : SYSTEM_PROMPT;
+  const userPrompt = topic ? getUserPrompt(topic, keywords ?? []) : USER_PROMPT;
 
   const response = await fetch(OPENROUTER_API_URL, {
     method: "POST",
@@ -19,8 +25,8 @@ export async function fetchAINews(): Promise<NewsItem[]> {
     body: JSON.stringify({
       model: OPENROUTER_MODEL,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: USER_PROMPT },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.3,
       max_tokens: 4000,

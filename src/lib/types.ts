@@ -12,3 +12,5 @@ export interface GenerateResponse {
 export interface GenerateError {
   error: string;
 }
+
+export type { TopicConfig } from "./chat-types";
