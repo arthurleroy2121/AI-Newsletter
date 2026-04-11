@@ -1,0 +1,8 @@
+# Treat font files as binary to prevent line-ending corruption
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# PDF files are binary
+*.pdf binary
