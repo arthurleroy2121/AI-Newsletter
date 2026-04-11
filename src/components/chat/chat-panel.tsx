@@ -9,15 +9,33 @@ import ChatInput from "./chat-input";
 
 interface ChatPanelProps {
   onTopicReady: (topic: TopicConfig) => void;
+  resetKey?: number;
 }
 
-export default function ChatPanel({ onTopicReady }: ChatPanelProps) {
+export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [topicConfig, setTopicConfig] = useState<TopicConfig | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prevResetKeyRef = useRef(resetKey);
+
+  // Reset conversation when resetKey changes (skip initial mount)
+  useEffect(() => {
+    if (prevResetKeyRef.current !== resetKey) {
+      prevResetKeyRef.current = resetKey;
+      // Abort any ongoing stream
+      abortControllerRef.current?.abort();
+      // Clear state
+      setMessages([]);
+      setTopicConfig(null);
+      setIsStreaming(false);
+      // Open panel and send fresh greeting
+      setIsOpen(true);
+      sendMessages([]);
+    }
+  }, [resetKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { NewsItem } from "@/lib/types";
 import type { TopicConfig } from "@/lib/chat-types";
+import { STORAGE_KEY_TOPIC } from "@/config/constants";
 import HeroSection from "@/components/hero-section";
 import GenerateButton from "@/components/generate-button";
 import LoadingState from "@/components/loading-state";
@@ -10,7 +11,6 @@ import NewsPreview from "@/components/news-preview";
 import DownloadButton from "@/components/download-button";
 import ErrorState from "@/components/error-state";
 import ChatPanel from "@/components/chat/chat-panel";
-import { X } from "lucide-react";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -20,6 +20,38 @@ export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [topicConfig, setTopicConfig] = useState<TopicConfig | null>(null);
+  const [chatResetKey, setChatResetKey] = useState(0);
+
+  // Load saved topic from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_TOPIC);
+      if (saved) {
+        setTopicConfig(JSON.parse(saved) as TopicConfig);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  const handleTopicReady = useCallback((topic: TopicConfig) => {
+    setTopicConfig(topic);
+    try {
+      localStorage.setItem(STORAGE_KEY_TOPIC, JSON.stringify(topic));
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const handleChangeTopic = useCallback(() => {
+    setTopicConfig(null);
+    try {
+      localStorage.removeItem(STORAGE_KEY_TOPIC);
+    } catch {
+      // Ignore storage errors
+    }
+    setChatResetKey((k) => k + 1);
+  }, []);
 
   const handleGenerate = useCallback(async () => {
     setStatus("loading");
@@ -65,28 +97,11 @@ export default function Home() {
 
   return (
     <>
-      <ChatPanel onTopicReady={setTopicConfig} />
+      <ChatPanel onTopicReady={handleTopicReady} resetKey={chatResetKey} />
 
       <main className="flex-1 flex flex-col items-center justify-start py-12 sm:py-20 px-4 sm:px-6">
         <div className="w-full max-w-2xl space-y-10">
-          <HeroSection topic={topicConfig?.topic} />
-
-          {/* Topic chip */}
-          {topicConfig && (
-            <div className="flex items-center justify-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#F4F3FF] border border-[#6C63FF]/20 rounded-full">
-                <span className="text-sm text-[#1A1A2E]">
-                  Sujet : <strong>{topicConfig.topic}</strong>
-                </span>
-                <button
-                  onClick={() => setTopicConfig(null)}
-                  className="p-0.5 rounded-full hover:bg-[#6C63FF]/10 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5 text-[#4A4A6A]" />
-                </button>
-              </div>
-            </div>
-          )}
+          <HeroSection topic={topicConfig?.topic} onChangeTopic={handleChangeTopic} />
 
           <GenerateButton
             onClick={handleGenerate}

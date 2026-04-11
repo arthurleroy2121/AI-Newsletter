@@ -110,9 +110,34 @@ Agent definitions live in `.claude/agents/`:
 - **Background**: white
 - **Style**: Minimalist, elegant, professional
 
-## Deployment
-- Platform: Vercel
-- Connect GitHub repo → auto-deploy on push
-- Set `OPENROUTER_API_KEY` in Vercel Environment Variables
-- Function timeout: 60s (configured in `vercel.json`)
+## Deployment & Push to GitHub/Vercel
+
+- **Platform**: Vercel (auto-deploy on push to `main`)
+- **GitHub repo**: `https://github.com/arthurleroy2121/news-ia.git` (remote: `origin`)
+- **Branch**: `main`
+- **Vercel env vars**: `OPENROUTER_API_KEY` (required)
+- **Function timeout**: 60s (configured in `vercel.json`)
 - No database, no auth, no edge config needed
+
+### How to push updates (for Claude)
+
+When the user asks to push/deploy/update on GitHub or Vercel, run these steps
+from the project directory `news-ia/`:
+
+```bash
+# 1. Stage all changed and new files (exclude .env, secrets, node_modules)
+git add -A
+
+# 2. Commit with a descriptive message in English
+git commit -m "descriptive message here"
+
+# 3. Push to GitHub — Vercel auto-deploys from main
+git push origin main
+```
+
+**Important notes:**
+- Always check `git status` first to see what changed
+- Never commit `.env`, `.env.local`, or files containing API keys
+- The `.claude/` directory can be committed (agent config, not secrets)
+- Vercel picks up the push automatically — no manual deploy needed
+- If push fails with "rejected" error, run `git pull --rebase origin main` first then push again
