@@ -30,7 +30,7 @@ export default function ChatMessage({
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-br-md bg-[#6C63FF] text-white text-sm leading-relaxed">
+        <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-br-md bg-[#1A1A2E] text-white text-sm leading-relaxed">
           {message.content}
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function ChatMessage({
           <div className="px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-[#F4F3FF] text-[#1A1A2E] text-sm leading-relaxed whitespace-pre-wrap">
             {parsed.textBefore}
             {isStreaming && isLastMessage && !parsed.mcq && !parsed.topicReady && (
-              <span className="inline-block w-1.5 h-4 ml-0.5 bg-[#6C63FF] animate-pulse rounded-sm" />
+              <span className="inline-block w-1.5 h-4 ml-0.5 bg-[#1A1A2E] animate-pulse rounded-sm" />
             )}
           </div>
         )}
@@ -76,7 +76,7 @@ export default function ChatMessage({
         {/* Show cursor when streaming and no content parsed yet */}
         {isStreaming && isLastMessage && !parsed?.textBefore && !parsed?.mcq && (
           <div className="px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-[#F4F3FF]">
-            <span className="inline-block w-1.5 h-4 bg-[#6C63FF] animate-pulse rounded-sm" />
+            <span className="inline-block w-1.5 h-4 bg-[#1A1A2E] animate-pulse rounded-sm" />
           </div>
         )}
       </div>

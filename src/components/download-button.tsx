@@ -27,7 +27,7 @@ export default function DownloadButton({ pdfBlob }: DownloadButtonProps) {
         onClick={handleDownload}
         variant="outline"
         size="lg"
-        className="border-[#6C63FF] text-[#6C63FF] hover:bg-[#F4F3FF] px-8 py-6 text-base font-medium rounded-xl"
+        className="border-[#1A1A2E] text-[#1A1A2E] hover:bg-[#1A1A2E]/5 px-8 py-6 text-base font-medium rounded-xl"
       >
         <Download className="mr-2 h-5 w-5" />
         Télécharger le PDF

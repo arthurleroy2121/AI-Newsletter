@@ -25,7 +25,7 @@ export default function ErrorState({ message, onRetry }: ErrorStateProps) {
       <Button
         onClick={onRetry}
         variant="outline"
-        className="border-[#6C63FF] text-[#6C63FF] hover:bg-[#F4F3FF]"
+        className="border-[#1A1A2E] text-[#1A1A2E] hover:bg-[#1A1A2E]/5"
       >
         <RefreshCw className="mr-2 h-4 w-4" />
         Réessayer

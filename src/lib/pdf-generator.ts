@@ -53,47 +53,40 @@ function formatDate(): string {
   });
 }
 
-function renderCoverPage(doc: jsPDF, date: string, topic?: string): void {
+function renderCoverPage(doc: jsPDF, date: string, newsCount: number, dateRangeLabel: string, topic?: string): void {
   const pageWidth = 210;
   const { primary, secondary, accent, lightAccent } = PDF_COLORS;
 
-  // Light accent background rectangle (top 60%)
+  // Light accent background rectangle (full page)
   doc.setFillColor(lightAccent.r, lightAccent.g, lightAccent.b);
-  doc.rect(0, 0, pageWidth, 178, "F");
+  doc.rect(0, 0, pageWidth, 297, "F");
 
-  // Title: NEWS IA
+  // Title: topic or app name
+  const coverTitle = topic || APP_NAME;
   doc.setFont("Inter", "bold");
   doc.setFontSize(48);
   setColor(doc, primary);
-  doc.text(APP_NAME, pageWidth / 2, 85, { align: "center" });
-
-  // Accent line
-  doc.setDrawColor(accent.r, accent.g, accent.b);
-  doc.setLineWidth(1);
-  doc.line(85, 95, 125, 95);
-
-  // Subtitle
-  doc.setFont("Inter", "normal");
-  doc.setFontSize(14);
-  setColor(doc, secondary);
-  const topicLabel = topic || "l'intelligence artificielle";
-  doc.text("Résumé quotidien de", pageWidth / 2, 115, { align: "center" });
-  doc.text(topicLabel, pageWidth / 2, 123, {
-    align: "center",
-  });
+  const titleLines: string[] = doc.splitTextToSize(coverTitle, pageWidth - 40);
+  const titleLineHeight = 18;
+  const titleStartY = 100;
+  for (let i = 0; i < titleLines.length; i++) {
+    doc.text(titleLines[i], pageWidth / 2, titleStartY + i * titleLineHeight, { align: "center" });
+  }
+  const titleEndY = titleStartY + (titleLines.length - 1) * titleLineHeight;
 
   // Date
+  doc.setFont("Inter", "normal");
   doc.setFontSize(12);
   setColor(doc, secondary);
-  doc.text(date, pageWidth / 2, 160, { align: "center" });
+  doc.text(date, pageWidth / 2, titleEndY + 30, { align: "center" });
 
   // Tagline
   doc.setFontSize(11);
   const taglineSubject = topic || "IA";
-  doc.text(`Top 3 des actualités ${taglineSubject}`, pageWidth / 2, 180, {
+  doc.text(`Top ${newsCount} des actualités ${taglineSubject}`, pageWidth / 2, titleEndY + 50, {
     align: "center",
   });
-  doc.text("des dernières 24 heures", pageWidth / 2, 188, {
+  doc.text(`des ${dateRangeLabel}`, pageWidth / 2, titleEndY + 58, {
     align: "center",
   });
 }
@@ -102,6 +95,7 @@ function renderNewsPage(
   doc: jsPDF,
   news: NewsItem,
   index: number,
+  total: number,
   date: string
 ): void {
   const pageWidth = 210;
@@ -117,7 +111,7 @@ function renderNewsPage(
 
   doc.setFont("Inter", "normal");
   setColor(doc, secondary);
-  doc.text(`Actualité ${index + 1}/3`, pageWidth / 2, 18, {
+  doc.text(`Actualité ${index + 1}/${total}`, pageWidth / 2, 18, {
     align: "center",
   });
   doc.text(date, pageWidth - marginX, 18, { align: "right" });
@@ -130,7 +124,7 @@ function renderNewsPage(
   // Large number
   doc.setFont("Inter", "bold");
   doc.setFontSize(60);
-  setColor(doc, accent);
+  setColor(doc, secondary);
   doc.text(String(index + 1), marginX, 55);
 
   // Title
@@ -186,12 +180,12 @@ function renderNewsPage(
   doc.setFont("Inter", "normal");
   doc.setFontSize(8);
   setColor(doc, secondary);
-  doc.text(`News IA — Page ${index + 2}/4`, pageWidth / 2, 284, {
+  doc.text(`${APP_NAME} — Page ${index + 2}/${total + 1}`, pageWidth / 2, 284, {
     align: "center",
   });
 }
 
-export function generatePDF(news: NewsItem[], topic?: string): ArrayBuffer {
+export function generatePDF(news: NewsItem[], topic?: string, dateRangeLabel: string = "dernières 24 heures"): ArrayBuffer {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -203,12 +197,12 @@ export function generatePDF(news: NewsItem[], topic?: string): ArrayBuffer {
   const date = formatDate();
 
   // Page 1: Cover
-  renderCoverPage(doc, date, topic);
+  renderCoverPage(doc, date, news.length, dateRangeLabel, topic);
 
-  // Pages 2-4: News items
+  // Pages 2+: News items
   for (let i = 0; i < news.length; i++) {
     doc.addPage();
-    renderNewsPage(doc, news[i], i, date);
+    renderNewsPage(doc, news[i], i, news.length, date);
   }
 
   return doc.output("arraybuffer");

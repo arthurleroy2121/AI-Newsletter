@@ -10,9 +10,10 @@ import ChatInput from "./chat-input";
 interface ChatPanelProps {
   onTopicReady: (topic: TopicConfig) => void;
   resetKey?: number;
+  openKey?: number;
 }
 
-export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps) {
+export default function ChatPanel({ onTopicReady, resetKey = 0, openKey = 0 }: ChatPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -20,8 +21,21 @@ export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevResetKeyRef = useRef(resetKey);
+  const prevOpenKeyRef = useRef(openKey);
+
+  // Open panel when openKey changes (skip initial mount)
+  useEffect(() => {
+    if (prevOpenKeyRef.current !== openKey) {
+      prevOpenKeyRef.current = openKey;
+      setIsOpen(true);
+      if (messages.length === 0) {
+        sendMessages([]);
+      }
+    }
+  }, [openKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset conversation when resetKey changes (skip initial mount)
+  // Only clears state — does NOT open the panel. Use openKey to open.
   useEffect(() => {
     if (prevResetKeyRef.current !== resetKey) {
       prevResetKeyRef.current = resetKey;
@@ -31,9 +45,7 @@ export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps
       setMessages([]);
       setTopicConfig(null);
       setIsStreaming(false);
-      // Open panel and send fresh greeting
-      setIsOpen(true);
-      sendMessages([]);
+      setIsOpen(false);
     }
   }, [resetKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,9 +194,9 @@ export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps
     return (
       <button
         onClick={handleOpen}
-        className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl hover:border-[#6C63FF]/30 transition-all text-sm font-medium text-[#1A1A2E]"
+        className="fixed top-4 left-[236px] z-50 flex items-center gap-2 px-4 py-2.5 bg-[#1A1A2E] rounded-full shadow-lg hover:shadow-xl hover:bg-[#2A2A4E] transition-all text-sm font-medium text-white"
       >
-        <MessageSquare className="w-4 h-4 text-[#6C63FF]" />
+        <MessageSquare className="w-4 h-4 text-white" />
         <span>Définir le sujet</span>
       </button>
     );
@@ -192,14 +204,14 @@ export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps
 
   // Expanded: chat panel
   return (
-    <div className="fixed top-4 left-4 z-50 w-[380px] max-h-[70vh] flex flex-col bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="fixed top-4 left-[236px] z-50 w-[380px] max-h-[70vh] flex flex-col bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
       {/* Purple accent strip */}
-      <div className="h-1 bg-[#6C63FF]" />
+      <div className="h-1 bg-[#1A1A2E]" />
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-[#6C63FF]" />
+          <MessageSquare className="w-4 h-4 text-[#1A1A2E]" />
           <span className="text-sm font-semibold text-[#1A1A2E]">
             Assistant News
           </span>
@@ -233,7 +245,7 @@ export default function ChatPanel({ onTopicReady, resetKey = 0 }: ChatPanelProps
         <div className="px-4 py-3 border-t border-gray-100 bg-green-50">
           <button
             onClick={handleUseTopic}
-            className="w-full py-2.5 text-sm font-medium rounded-lg bg-[#6C63FF] text-white hover:bg-[#5A52E0] transition-colors"
+            className="w-full py-2.5 text-sm font-medium rounded-full bg-[#1A1A2E] text-white hover:bg-[#2A2A4E] transition-colors"
           >
             Utiliser ce sujet : {topicConfig.topic}
           </button>

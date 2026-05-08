@@ -4,15 +4,17 @@ import type { NewsItem, GenerateResponse } from "./types";
 
 export async function fetchAINews(
   topic?: string,
-  keywords?: string[]
+  keywords?: string[],
+  newsCount: number = 3,
+  dateRangePrompt: string = "dernières 24 heures"
 ): Promise<NewsItem[]> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY is not configured");
   }
 
-  const systemPrompt = topic ? getSystemPrompt(topic) : SYSTEM_PROMPT;
-  const userPrompt = topic ? getUserPrompt(topic, keywords ?? []) : USER_PROMPT;
+  const systemPrompt = topic ? getSystemPrompt(topic, newsCount, dateRangePrompt) : SYSTEM_PROMPT;
+  const userPrompt = topic ? getUserPrompt(topic, keywords ?? [], newsCount, dateRangePrompt) : USER_PROMPT;
 
   const response = await fetch(OPENROUTER_API_URL, {
     method: "POST",
@@ -29,7 +31,7 @@ export async function fetchAINews(
         { role: "user", content: userPrompt },
       ],
       temperature: 0.3,
-      max_tokens: 4000,
+      max_tokens: Math.max(4000, newsCount * 800),
     }),
   });
 
@@ -60,11 +62,11 @@ export async function fetchAINews(
     throw new Error("Invalid JSON response from AI model");
   }
 
-  if (!parsed.news || !Array.isArray(parsed.news) || parsed.news.length !== 3) {
+  if (!parsed.news || !Array.isArray(parsed.news) || parsed.news.length === 0) {
     throw new Error(
-      `Expected 3 news items, got ${parsed.news?.length ?? "none"}`
+      `Expected ${newsCount} news items, got ${parsed.news?.length ?? "none"}`
     );
   }
 
-  return parsed.news;
+  return parsed.news.slice(0, newsCount);
 }

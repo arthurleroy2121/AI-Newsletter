@@ -26,6 +26,7 @@ FORMAT TOPIC_READY (quand le sujet est finalisé, après la réponse MCQ) :
 RÈGLES IMPORTANTES :
 - N'utilise PAS le format MCQ dans ton tout premier message. Demande d'abord le sujet en texte libre.
 - Utilise MCQ uniquement pour raffiner après que l'utilisateur a donné un sujet.
+- Chaque question MCQ DOIT obligatoirement se terminer par \`- [OTHER]\` comme dernière option. Ne l'oublie JAMAIS.
 - L'option [OTHER] permet à l'utilisateur de taper sa propre réponse.
 - Les mots-clés dans TOPIC_READY doivent être pertinents pour rechercher des actualités récentes.
 - Le champ "scope" peut être : "general" (grand public), "technique" (détails techniques), ou "business" (impact économique).

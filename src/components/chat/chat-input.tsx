@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Send } from "lucide-react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { ArrowUp } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -10,12 +10,17 @@ interface ChatInputProps {
 
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setValue("");
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   }, [value, disabled, onSend]);
 
   const handleKeyDown = useCallback(
@@ -28,24 +33,38 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     [handleSend]
   );
 
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    }
+  }, [value]);
+
   return (
-    <div className="flex items-center gap-2 p-3 border-t border-gray-200">
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        placeholder="Tapez votre message..."
-        className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-[#1A1A2E] placeholder:text-[#4A4A6A]/50 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] disabled:opacity-50"
-      />
-      <button
-        onClick={handleSend}
-        disabled={disabled || !value.trim()}
-        className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#6C63FF] text-white hover:bg-[#5A52E0] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-      >
-        <Send className="w-4 h-4" />
-      </button>
+    <div className="p-3">
+      <div className="relative rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          placeholder="Demandez-moi n'importe quoi..."
+          rows={2}
+          className="w-full resize-none rounded-2xl bg-transparent px-4 pt-3.5 pb-12 text-sm text-[#1A1A2E] placeholder:text-[#4A4A6A]/40 focus:outline-none disabled:opacity-50"
+        />
+        <div className="absolute bottom-2.5 right-2.5">
+          <button
+            onClick={handleSend}
+            disabled={disabled || !value.trim()}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1A1A2E] text-white hover:bg-[#2A2A4E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

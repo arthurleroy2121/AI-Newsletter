@@ -2,12 +2,21 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getDateRangeLabel } from "@/config/constants";
 
-export default function LoadingState() {
+interface LoadingStateProps {
+  topic?: string;
+  dateRange: string;
+}
+
+export default function LoadingState({ topic, dateRange }: LoadingStateProps) {
+  const subject = topic || "IA";
+  const rangeLabel = getDateRangeLabel(dateRange);
+
   return (
     <div className="space-y-4">
       <p className="text-center text-sm text-[#4A4A6A]">
-        Recherche des dernières actualités IA...
+        Recherche des actualités {subject} {rangeLabel}...
       </p>
       {[1, 2, 3].map((i) => (
         <Card key={i} className="border border-gray-100">

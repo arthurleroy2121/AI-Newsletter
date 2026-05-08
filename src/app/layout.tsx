@@ -10,7 +10,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "News IA - Résumé quotidien de l'intelligence artificielle",
   description:
-    "Générez un résumé PDF des 3 principales actualités IA des dernières 24 heures.",
+    "Générez un résumé PDF des principales actualités sur le thème de votre choix.",
 };
 
 export default function RootLayout({
