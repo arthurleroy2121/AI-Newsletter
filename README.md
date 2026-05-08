@@ -156,9 +156,3 @@ npx shadcn@latest add <component>   # Add a shadcn/ui component
 The app auto-deploys to Vercel on every push to `main`. No manual step needed.
 
 Required env var on Vercel: `OPENROUTER_API_KEY`.
-
----
-
-## Credits
-
-Built by **Arthur Leroy** with Claude Code (claude-sonnet-4-6) as the primary development agent.
